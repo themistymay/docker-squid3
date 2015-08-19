@@ -30,6 +30,7 @@ acl Safe_ports port 280		# http-mgmt
 acl Safe_ports port 488		# gss-http
 acl Safe_ports port 591		# filemaker
 acl Safe_ports port 777		# multiling http
+acl SSL method CONNECT
 acl CONNECT method CONNECT
 
 #
@@ -76,6 +77,7 @@ https_port 3130 intercept ssl-bump generate-host-certificates=on dynamic_cert_me
 always_direct allow all
 ssl_bump server-first all
 sslproxy_cert_error deny all
+sslproxy_cafile /certs/squid.pem
 sslproxy_flags DONT_VERIFY_PEER
 sslpassword_program /etc/squid3/password
 #sslcrtd_program /usr/lib/squid3/ssl_crtd -c -s /cache/ssl_db -M 4MB
