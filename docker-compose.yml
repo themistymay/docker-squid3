@@ -1,3 +1,4 @@
 squid3:
   build: .
-  
+  volumes:
+    - ./logs:/squid3_logs

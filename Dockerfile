@@ -58,44 +58,36 @@ RUN make
 RUN make install
 
 RUN apt-get install -yq supervisor
-RUN mkdir -p /var/log/supervisor /etc/supervisor/conf.d/
 
 RUN apt-get clean
 
-COPY supervisord.conf /etc/supervisor/supervisord.conf
-COPY squid.conf /etc/squid3/squid.conf
+COPY squid.conf.ssl /etc/squid3/squid.conf
+COPY password	/etc/squid3/password
+RUN chmod +x /etc/squid3/password
 
-#RUN chown proxy:proxy /etc/squid3/squid.conf
-#RUN chmod a+r /etc/squid3/squid.conf
+RUN mkdir /certs
+WORKDIR /certs
 
-#
-# ADD squid.conf /etc/squid/squid.conf
-#
-# RUN mkdir /certs
-# WORKDIR /certs
-#
-# ADD inet.cert inet.cert
-# ADD inet.csr inet.csr
-# ADD inet.private inet.private
-#
-# RUN /usr/lib/squid/ssl_crtd -c -s /var/lib/ssl_db
-# RUN chown squid:squid /var/lib/ssl_db
-#
-# RUN touch /var/run/squid.pid
-# RUN chmod 755 /var/run/squid.pid
-# RUN chown squid:squid /var/run/squid.pid
-#
-# # fix permissions on the log dir
-# RUN mkdir -p /var/log/squid
-# RUN chmod -R 755 /var/log/squid
-RUN chown -R proxy:proxy /var/log/squid3
+ADD certs/intermediate.cert.pem squid.crt
+ADD certs/intermediate.key.pem squid.key
+RUN cat squid.key squid.crt > squid.pem
+RUN cp squid.crt /usr/local/share/ca-certificates/
+RUN update-ca-certificates
+
+RUN mkdir -p /squid3/logs
+RUN chown proxy /squid3
+RUN chmod -R 777 /squid3
+
+RUN mkdir -p /usr/local/squid/var/lib
+RUN /usr/lib/squid3/ssl_crtd -c -s /usr/local/squid/var/lib/ssl_db
+RUN chown -R proxy /usr/local/squid/var/lib/ssl_db
+
 RUN chmod 4755 /usr/lib/squid3/pinger
-#
-# # fix permissions on the cache dir
-# RUN mkdir -p /var/spool/squid
-# RUN chown -R squid:squid /var/spool/squid
 
-EXPOSE 3128
-#USER proxy
-#CMD ["/usr/local/squid/sbin/squid", "-f", "/etc/squid3/squid.conf"]
-CMD ["/usr/bin/supervisord", "-n"]
+RUN chmod -R 777 /var/log/squid3
+
+# CMD ["/usr/local/squid/sbin/squid", "-NCd1zv", "-f", "/etc/squid3/squid.conf"]
+
+COPY supervisord.conf /etc/supervisor/conf.d/squid3.conf
+
+CMD [ "/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf" ]

@@ -2,6 +2,14 @@
 # Recommended minimum configuration:
 #
 
+# DEBUG
+debug_options ALL,2
+
+# Logging
+access_log        /squid3/logs/access.log squid
+cache_store_log   /squid3/logs/store.log
+cache_log         /squid3/logs/cache.log
+
 # Example rule allowing access from your local networks.
 # Adapt to list your (internal) IP networks from where browsing
 # should be allowed
@@ -55,16 +63,23 @@ http_access allow localhost
 # And finally deny all other access to this proxy
 http_access deny all
 
-# Squid normally listens to port 3128
-# Intercept SSL
-http_port 3128 intercept ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB key=/certs/inet.private cert=/certs/inet.cert
+# for clients with a configured proxy.
+http_port 3128
+
+# for clients who are sent here via iptables ... REDIRECT.
+http_port 3129
+
+# for https clients who are sent here via iptables ... REDIRECT
+https_port 3130 intercept ssl-bump generate-host-certificates=on dynamic_cert_mem_cache_size=4MB cert=/certs/squid.pem
 
 # SSL Bump Config
 always_direct allow all
 ssl_bump server-first all
 sslproxy_cert_error deny all
 sslproxy_flags DONT_VERIFY_PEER
-sslcrtd_program /usr/lib/squid/ssl_crtd -s /var/lib/ssl_db -M 4MB sslcrtd_children 8 startup=1 idle=1
+sslpassword_program /etc/squid3/password
+#sslcrtd_program /usr/lib/squid3/ssl_crtd -c -s /cache/ssl_db -M 4MB
+#sslcrtd_children 8
 
 # Uncomment and adjust the following to add a disk cache directory.
 #cache_dir ufs /var/spool/squid3 100 16 256
