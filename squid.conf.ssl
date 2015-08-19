@@ -19,6 +19,11 @@ acl localnet src 192.168.0.0/16	# RFC1918 possible internal network
 acl localnet src fc00::/7       # RFC 4193 local private network range
 acl localnet src fe80::/10      # RFC 4291 link-local (directly plugged) machines
 
+# Ignore sites
+acl ignore_sites dstdomain .bankofameria.com
+acl ignore_sites dstdomain .gmail.com
+acl ignore_sites dstdomain .facebook.com
+
 acl SSL_ports port 443
 acl Safe_ports port 80		# http
 acl Safe_ports port 21		# ftp
@@ -75,7 +80,15 @@ https_port 3130 intercept ssl-bump generate-host-certificates=on dynamic_cert_me
 
 # SSL Bump Config
 always_direct allow all
+
+# Do not decrypt the following
+ssl_bump splice localnet
+ssl_bump splice ignore_sites
+
+# Decryp all other traffic
+ssl_bump bump all
 ssl_bump server-first all
+
 sslproxy_cert_error deny all
 sslproxy_cafile /certs/squid.pem
 sslproxy_flags DONT_VERIFY_PEER
