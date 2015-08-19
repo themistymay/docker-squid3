@@ -81,7 +81,7 @@ sslproxy_cafile /certs/squid.pem
 sslproxy_flags DONT_VERIFY_PEER
 sslpassword_program /etc/squid3/password
 #sslcrtd_program /usr/lib/squid3/ssl_crtd -c -s /cache/ssl_db -M 4MB
-#sslcrtd_children 8
+sslcrtd_children 10
 
 # Uncomment and adjust the following to add a disk cache directory.
 #cache_dir ufs /var/spool/squid3 100 16 256
