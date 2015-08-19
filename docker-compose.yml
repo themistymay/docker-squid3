@@ -1,4 +1,6 @@
 squid3:
   build: .
   volumes:
-    - ./logs:/squid3_logs
+    - ./logs:/squid3/logs
+  net:
+    - host
